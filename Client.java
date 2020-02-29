@@ -15,6 +15,10 @@ public class Client implements Info_itf, Accounting_itf {
         return this.id;
     } 
 
+    public void setId(int id){
+        this.id = id;
+    }
+
     @Override
     public String getName() throws RemoteException {
         return this.name;
