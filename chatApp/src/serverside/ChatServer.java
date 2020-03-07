@@ -12,7 +12,8 @@ import chatApp.clientside.*;
 
 public class ChatServer implements Join_itf, Leave_itf, SendMessage_itf {
 
-	private static HashMap<Integer,RecieveMessage_itf> clientList = new HashMap<Integer,RecieveMessage_itf>();
+	
+	private static HashMap<Integer,RecieveMessage_itf> clientList = new HashMap<Integer,RecieveMessage_itf>();// TODO: this representation ? 
 	private static Random randomGenerator = new Random();
 	private static ArrayList<Pair<String, String>> messageHistory = new ArrayList<Pair<String, String>>();
 
@@ -50,7 +51,7 @@ public class ChatServer implements Join_itf, Leave_itf, SendMessage_itf {
 
 			if(client.getKey()==id) continue;		  
 			else{
-				client.getValue().recieveMessage(message);
+				client.getValue().recieveMessage(new Pair<String,String>(name,message));
 			}
 	  }	
 	}
@@ -84,11 +85,12 @@ public class ChatServer implements Join_itf, Leave_itf, SendMessage_itf {
 	}
 
 	@Override
-	public boolean joinServer(String name, RecieveMessage_itf client) throws RemoteException {
+	public boolean joinServer(String name, RecieveMessage_itf client,SetId_itf idSetter) throws RemoteException {
 		
 		//todo: case when more than 100 clients already existed
 		//also when client leaves
 		int newId = generateId();
+		idSetter.setId(newId);
 		clientList.put(newId,client);
 		return true;
 	}

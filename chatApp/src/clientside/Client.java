@@ -15,6 +15,10 @@ public class Client implements GetId_itf, RecieveMessage_itf, SetId_itf {
 
     }    
 
+    public String getName(){
+        return this.name;
+    }
+
     public int getId() throws RemoteException{
         return this.id;
     } 
@@ -23,9 +27,14 @@ public class Client implements GetId_itf, RecieveMessage_itf, SetId_itf {
         this.id = id;
     }
 
-    public void recieveMessage(String message) throws RemoteException {
-            //TODO add implementation
-    }
+    public void recieveMessage(Pair message) throws RemoteException {
+            this.messagesHistory.add(message);
+            updateChatdisplay(ma, message);
 
-   
+    }
+ 
+	public static void updateChatdisplay(String name, String message){
+		System.out.println(name+message);
+
+	}   
 }

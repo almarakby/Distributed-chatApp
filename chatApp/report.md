@@ -6,4 +6,4 @@
 between the cleint and server if they are on diferent machines.
 3. cannt add jars and complie it using the terminal.
 
-4. syncing between messages.
+4. syncing between messages. message history needs to be thread safe ? 

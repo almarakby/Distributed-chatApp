@@ -4,5 +4,5 @@ import java.rmi.RemoteException;
 
 public interface RecieveMessage_itf extends Remote {
 
-    public void recieveMessage(String message) throws RemoteException;
+    public void recieveMessage(Pair<String,String> message) throws RemoteException;
 }
