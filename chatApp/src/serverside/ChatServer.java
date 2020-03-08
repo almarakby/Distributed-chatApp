@@ -2,20 +2,21 @@ import java.rmi.server.*;
 import java.rmi.registry.*;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Iterator;
-import chatApp.clientside.*;
+import java.util.List;
 
 public class ChatServer implements Join_itf, Leave_itf, SendMessage_itf {
 
 	
-	private static HashMap<Integer,RecieveMessage_itf> clientList = new HashMap<Integer,RecieveMessage_itf>();// TODO: this representation ? 
+	private static ConcurrentHashMap<String,RecieveMessage_itf> clientList = new ConcurrentHashMap<String,RecieveMessage_itf>(); 
+	private static List<Pair<String, String>> messageHistory = Collections.synchronizedList(new ArrayList<Pair<String, String>>());
 	private static Random randomGenerator = new Random();
-	private static ArrayList<Pair<String, String>> messageHistory = new ArrayList<Pair<String, String>>();
 
 	public static void  main(String [] args) {
 	  try {
@@ -43,55 +44,107 @@ public class ChatServer implements Join_itf, Leave_itf, SendMessage_itf {
 	  }
   }
 
-	public static void broadcastMessage(String message, int id) {
+	public static void redirectMessage(String from,String to, String message) {
+
+		if(to != null){
+		
+		try{
+			clientList.get(to).recieveMessage(from,message);
+		} catch (Exception e) {
+			System.err.println("Error on server :" + e) ;
+			e.printStackTrace();
+		}
+
+		return;
+		}
+
 		Iterator clientListIterator = clientList.entrySet().iterator();
 
-		while (clientListIterator.hasNext()) {
-			Map.Entry<Integer,RecieveMessage_itf> client = (Map.Entry<Integer,RecieveMessage_itf>) clientListIterator.next();  
+		synchronized(clientList){
 
-			if(client.getKey()==id) continue;		  
-			else{
-				client.getValue().recieveMessage(new Pair<String,String>(name,message));
-			}
-	  }	
+			while (clientListIterator.hasNext()) {
+				
+				Map.Entry<String,RecieveMessage_itf> client = (Map.Entry<String,RecieveMessage_itf>) clientListIterator.next();  
+
+				if(client.getKey().equals(from)) continue;		  
+				else{
+					try{
+					client.getValue().recieveMessage(from,message);
+					} catch (Exception e) {
+						System.err.println("Error on server :" + e) ;
+						e.printStackTrace();
+					}
+				}
+			}	
+		}
 	}
 
   public static int generateId(){
 	return randomGenerator.nextInt(100);
   }
-	@Override
-	public boolean SendMessage(String message,String name, int id) throws RemoteException {
+	
+  @Override
+	public boolean sendMessage(String from,String message) throws RemoteException {
 
 		// todo: 0- check if the client is in the list
-		if(!clientList.containsKey(id)){
-			System.out.printf("client %d is not registered\n", id);
+		if(!clientList.containsKey(from)){
+			System.out.printf("client %s is not registered\n", from);
 			return false;
 		}
 		// todo: 1- add message to history
-		messageHistory.add(new Pair<String,String>(message,name));
+		messageHistory.add(new Pair<String,String>(from,message));
 
 		
 
 		// todo: 2- broadcast message
-		broadcastMessage(message, id);
+		redirectMessage(from,null,message);
 
 
 		return true;
 	}
 
 	@Override
-	public void leaveChat(int id) throws RemoteException {
-		clientList.remove(id);
+	public boolean sendMessage(String from,String to, String message) throws RemoteException
+	{
+
+		if(!clientList.containsKey(from)){
+			System.out.printf("client %s is not registered\n", from);
+			return false;
+		}
+
+
+		if(!clientList.containsKey(to)){
+			System.out.printf("client %s is not in the chat room\n", to);
+			return false;
+		}
+
+		// todo: 1- add message to history
+		messageHistory.add(new Pair<String,String>(from,message));
+
+		
+
+		// todo: 2- broadcast message
+		redirectMessage(from,to,message);
+
+
+		return true;
 	}
 
 	@Override
-	public boolean joinServer(String name, RecieveMessage_itf client,SetId_itf idSetter) throws RemoteException {
+	public void leaveChat(String name) throws RemoteException {
+		clientList.remove(name);
+	}
+
+	@Override
+	public boolean joinServer(String name, RecieveMessage_itf client) throws RemoteException {
 		
-		//todo: case when more than 100 clients already existed
-		//also when client leaves
-		int newId = generateId();
-		idSetter.setId(newId);
-		clientList.put(newId,client);
+		//todo:also when client leaves
+		// int newId = generateId();
+		// idSetter.setId(newId);
+		if(clientList.containsKey(name)){
+			return false;
+		}
+		clientList.put(name,client);
 		return true;
 	}
 

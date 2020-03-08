@@ -1,4 +1,4 @@
-package chatApp.clientside;
+// package chatApp.src.serverside;
 
 /*
  * Pair.java: Helper class to create tuples, 

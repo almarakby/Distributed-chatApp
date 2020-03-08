@@ -3,5 +3,5 @@ import java.rmi.RemoteException;
 
 public interface Leave_itf extends Remote {
 
-    public void leaveChat(int id) throws RemoteException;
+    public void leaveChat(String name) throws RemoteException;
 }

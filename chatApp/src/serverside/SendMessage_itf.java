@@ -3,5 +3,7 @@ import java.rmi.RemoteException;
 
 public interface SendMessage_itf extends Remote {
 
-    public boolean SendMessage(String message,String name,int id) throws RemoteException;
+    public boolean sendMessage(String from,String message) throws RemoteException;
+    public boolean sendMessage(String from,String to, String message) throws RemoteException;
+
 }

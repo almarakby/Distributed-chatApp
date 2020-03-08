@@ -1,5 +1,3 @@
-package chatApp.serverside;
-
 /**
  * Triplet: triplet datastructure jelper class
  * 
