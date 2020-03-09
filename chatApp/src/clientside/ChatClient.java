@@ -2,6 +2,7 @@
 import java.rmi.*;
 import java.rmi.registry.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 import java.util.Scanner;
 
 public class ChatClient  {
@@ -31,7 +32,7 @@ public class ChatClient  {
 	Join_itf joinChat = (Join_itf) registry.lookup("joinService");
 	Leave_itf leaveChat = (Leave_itf) registry.lookup("leaveService");
 	SendMessage_itf interact = (SendMessage_itf) registry.lookup("sendMessageService"); //cant find a name for this service  
-	
+	ChatHistory_itf chatHistory = (ChatHistory_itf) registry.lookup("chatHistoryService"); 
 		
 	System.out.println("please enter your name");
 	name = inputScanner.nextLine();
@@ -53,7 +54,7 @@ public class ChatClient  {
 	System.out.println("welcome to the chat, to exit enter \"quitchat\"");
 	System.out.println("to send a message to a all chat room members, please enter \"all:you message\"");
 	System.out.println("to send a message to a a specific chat room members, please enter \"member name:you message\"");
-
+	System.out.println("to retreive chat history, please enter \"chathistory\"");;
 	while(true){
 		
 
@@ -65,19 +66,34 @@ public class ChatClient  {
 		// break;
 		}
 
+	if (message.equals("chathistory")){
+		
+		//todo: do you add message to the history or not ? 
+		List<Pair<String, String>> retreivedChatHistory = chatHistory.getChatHistory(name);
+		
+		if(retreivedChatHistory == null){
+			System.out.println("you are not registered in the chat room, please register first");
+		}
+		else{
+			for(Pair<String,String> nameMessagePair: retreivedChatHistory){
+				Client.updateChatdisplay(nameMessagePair.getP1(), nameMessagePair.getP2());
+			}
+		}
+		continue;
+	}
+
 	
 	String[] parsedMessage = message.split(":");
 	if (parsedMessage.length < 2) {
 		System.out.println("Please enter the correct format for sending a message");
+		name = inputScanner.nextLine();
 		continue;
 	}
 	parsedMessage[0] = parsedMessage[0].replaceAll("\\s", "");
-	// parsedMessage[1] = parsedMessage[1].replaceAll("\\s", "");
 
 
 	if(parsedMessage[0].equals("all")){
-		interact.sendMessage(name,parsedMessage[1]);
-		// Client.updateChatdisplay(name, parsedMessage[1]);
+		interact.sendMessage(name,"all",parsedMessage[1]);
 
 	}
 	else if(parsedMessage[0].equals("all") == false){
@@ -85,8 +101,6 @@ public class ChatClient  {
 		if(interact.sendMessage(name,parsedMessage[0],parsedMessage[1]) != true){
 			System.out.println("the user is not in the chat room");
 			}
-			// Client.updateChatdisplay(name, parsedMessage[1]);
-
 		}
 		else{
 			// System.out.println("Please enter the correct format for sending a message");
